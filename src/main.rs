@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+mod lexer;
+
 #[derive(Debug, PartialEq)]
 struct Scan<'a> {
     table_name: &'a str,
@@ -24,7 +26,6 @@ impl Source for CsvSource<'_> {
     }
 }
 
-
 // Supports statements of the form
 // * SELECT * FROM <table_name>
 fn parse_sql(sql: &str) -> Scan {
@@ -32,7 +33,7 @@ fn parse_sql(sql: &str) -> Scan {
     match x {
         None => panic!("SQL input did not contain FROM clause"),
         Some(table_name) => Scan {
-            table_name: table_name.trim()
+            table_name: table_name.trim(),
         },
     }
 }
@@ -49,7 +50,7 @@ fn main() {
         separator: ",",
     };
     let mut schemas: HashMap<&str, &CsvSource> = HashMap::new();
-    schemas.insert("fish", &fish_source); 
+    schemas.insert("fish", &fish_source);
     let results = interpret_query(query, schemas);
     for row in results {
         println!("{:?}", row);
