@@ -1,11 +1,11 @@
 #[derive(Debug, PartialEq)]
-enum Token {
+pub enum Token {
     Select,
     From,
     Identifier(String),
 }
 
-fn lex(input: &str) -> Vec<Token> {
+pub fn lex(input: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     for i in input.split_whitespace() {
         let token = match i {

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 mod lexer;
+mod parser;
 
 #[derive(Debug, PartialEq)]
 struct Scan<'a> {
