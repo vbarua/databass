@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 mod lexer;
 mod parser;
+mod planner;
 
 #[derive(Debug, PartialEq)]
 struct Scan<'a> {
@@ -18,8 +19,10 @@ struct CsvSource<'a> {
     separator: &'a str,
 }
 
+type Row = Vec<String>;
+
 impl Source for CsvSource<'_> {
-    fn scan(&self) -> Vec<Vec<String>> {
+    fn scan(&self) -> Vec<Row> {
         let data = std::fs::read_to_string(format!("data/{}", self.filename)).unwrap();
         data.lines()
             .map(|row| row.split(self.separator).map(String::from).collect())
@@ -27,35 +30,28 @@ impl Source for CsvSource<'_> {
     }
 }
 
-// Supports statements of the form
-// * SELECT * FROM <table_name>
-fn parse_sql(sql: &str) -> Scan {
-    let x = sql.rsplit("FROM").next();
-    match x {
-        None => panic!("SQL input did not contain FROM clause"),
-        Some(table_name) => Scan {
-            table_name: table_name.trim(),
-        },
+type Schemas<'a> = HashMap<&'a str, &'a CsvSource<'a>>;
+
+fn run_query(query_string: &str, schemas: &Schemas) {
+    let query = parser::parse(query_string);
+    let plan = planner::plan(query);
+
+    let source = schemas.get(&plan.from as &str).unwrap();
+    let rows: Vec<Row> = source.scan();
+    for row in rows.into_iter().take(10) {
+        println!("{:?}", row);
     }
 }
 
-fn interpret_query<'a>(query: Scan, schemas: HashMap<&str, &'a CsvSource>) -> Vec<Vec<String>> {
-    let source = schemas.get(query.table_name).unwrap();
-    source.scan()
-}
-
 fn main() {
-    let query = parse_sql("SELECT * FROM fish");
     let fish_source = CsvSource {
         filename: "fish.csv",
         separator: ",",
     };
-    let mut schemas: HashMap<&str, &CsvSource> = HashMap::new();
+    let mut schemas: Schemas = HashMap::new();
     schemas.insert("fish", &fish_source);
-    let results = interpret_query(query, schemas);
-    for row in results {
-        println!("{:?}", row);
-    }
+
+    run_query("SELECT * FROM fish", &schemas);
 }
 
 #[cfg(test)]

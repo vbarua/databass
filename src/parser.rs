@@ -1,11 +1,11 @@
 use crate::lexer::{lex, Token};
 
 #[derive(Debug, PartialEq)]
-struct Select {
-    from: String,
+pub struct Select {
+    pub from: String,
 }
 
-fn parse(input: &str) -> Select {
+pub fn parse(input: &str) -> Select {
     let tokens = lex(input);
     match &tokens[..] {
         [Token::Select, Token::Identifier(_), Token::From, Token::Identifier(table)] => Select {
